@@ -1,11 +1,13 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { venueStore } from '../src/state/venueStore.js';
 import { createVenue } from '../src/domain/venueFactory.js';
-import { manualAllocate, manualCancel } from '../src/domain/allocationEngine.js';
+import { manualAllocate, manualCancel, processingDelay } from '../src/domain/allocationEngine.js';
 
 describe('manual allocation actions', () => {
   beforeEach(() => {
     venueStore.reset(createVenue({ rows: 2, columns: 2 }));
+    processingDelay.minMs = 0;
+    processingDelay.maxMs = 5;
   });
 
   it('manually allocates an available seat to a given customer', async () => {

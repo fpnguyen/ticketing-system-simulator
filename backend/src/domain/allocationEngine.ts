@@ -7,8 +7,9 @@ import type { Customer, RequestItem, RequestSource } from './types.js';
 
 export const seatLock = new SeatLockManager();
 
-const PROCESSING_DELAY_MIN_MS = 150;
-const PROCESSING_DELAY_MAX_MS = 600;
+/** Artificial per-seat processing delay, tunable so tests can shrink it to
+ * run fast while the real app stays slow enough to watch. */
+export const processingDelay = { minMs: 800, maxMs: 2000 };
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -75,7 +76,7 @@ export async function attemptAllocate(request: RequestItem): Promise<RequestItem
     // Artificial pacing purely for visualization. Safe here specifically
     // because it runs inside the per-seat mutex: unrelated seats keep
     // processing fully in parallel while only same-seat contenders wait.
-    await sleep(randomBetween(PROCESSING_DELAY_MIN_MS, PROCESSING_DELAY_MAX_MS));
+    await sleep(randomBetween(processingDelay.minMs, processingDelay.maxMs));
 
     const ticketId = randomUUID();
     seat.status = 'sold';

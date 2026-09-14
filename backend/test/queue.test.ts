@@ -3,6 +3,7 @@ import { venueStore } from '../src/state/venueStore.js';
 import { createVenue } from '../src/domain/venueFactory.js';
 import { startSimulationRun } from '../src/domain/workerPool.js';
 import { eventBus } from '../src/domain/eventBus.js';
+import { processingDelay } from '../src/domain/allocationEngine.js';
 
 function waitForRunCompletion(runId: string): Promise<void> {
   return new Promise((resolve) => {
@@ -19,6 +20,8 @@ function waitForRunCompletion(runId: string): Promise<void> {
 describe('queue + worker pool oversubscription', () => {
   beforeEach(() => {
     venueStore.reset(createVenue({ rows: 5, columns: 5 })); // 25 seats
+    processingDelay.minMs = 0;
+    processingDelay.maxMs = 5;
   });
 
   it('commits exactly one request per seat and fails the rest when demand exceeds supply', async () => {

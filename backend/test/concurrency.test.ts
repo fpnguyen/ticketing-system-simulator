@@ -1,11 +1,13 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { venueStore } from '../src/state/venueStore.js';
 import { createVenue } from '../src/domain/venueFactory.js';
-import { attemptAllocate, createRequestItem } from '../src/domain/allocationEngine.js';
+import { attemptAllocate, createRequestItem, processingDelay } from '../src/domain/allocationEngine.js';
 
 describe('concurrency correctness', () => {
   beforeEach(() => {
     venueStore.reset(createVenue({ rows: 1, columns: 1 }));
+    processingDelay.minMs = 0;
+    processingDelay.maxMs = 5;
   });
 
   it('allows exactly one winner when many requests race for the same seat', async () => {
