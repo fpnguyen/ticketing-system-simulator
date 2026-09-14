@@ -39,6 +39,7 @@ interface SimulationState {
   applyRunStarted: (payload: { runId: string; requestCount: number }) => void;
   applyRunCompleted: (payload: { runId: string; requestCount: number }) => void;
   applyVenueReset: () => void;
+  leaveVenue: () => void;
 }
 
 export const useSimulationStore = create<SimulationState>((set) => ({
@@ -107,4 +108,17 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       queuedCount: 0,
       processingCount: 0,
     })),
+
+  leaveVenue: () =>
+    set({
+      venue: null,
+      seats: new Map(),
+      workers: [],
+      queuedCount: 0,
+      processingCount: 0,
+      metrics: null,
+      metricsHistory: [],
+      log: [],
+      run: null,
+    }),
 }));

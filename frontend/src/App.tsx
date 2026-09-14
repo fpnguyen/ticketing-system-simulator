@@ -12,7 +12,13 @@ import { wireSocketListeners } from './state/wireSocketListeners';
 export default function App() {
   const venue = useSimulationStore((s) => s.venue);
   const connected = useSimulationStore((s) => s.connected);
+  const leaveVenue = useSimulationStore((s) => s.leaveVenue);
   const [error, setError] = useState<string | null>(null);
+
+  function handleNewVenue() {
+    if (!confirm('Start a new venue? This just returns to setup — the current one keeps running in the background.')) return;
+    leaveVenue();
+  }
 
   useEffect(() => {
     wireSocketListeners();
@@ -35,18 +41,25 @@ export default function App() {
             </p>
           )}
         </div>
-        <span className="muted" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: connected ? 'var(--status-good)' : 'var(--status-critical)',
-              display: 'inline-block',
-            }}
-          />
-          {connected ? 'Connected' : 'Disconnected'}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {venue && (
+            <button type="button" onClick={handleNewVenue}>
+              New venue
+            </button>
+          )}
+          <span className="muted" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: connected ? 'var(--status-good)' : 'var(--status-critical)',
+                display: 'inline-block',
+              }}
+            />
+            {connected ? 'Connected' : 'Disconnected'}
+          </span>
+        </div>
       </header>
 
       {error && (
