@@ -6,14 +6,23 @@ import { useSimulationStore } from '../state/useSimulationStore';
 const MAX_DIMENSION = 30;
 
 export function VenueSetupForm() {
-  const [rows, setRows] = useState(8);
-  const [columns, setColumns] = useState(10);
+  const [rowsInput, setRowsInput] = useState('8');
+  const [columnsInput, setColumnsInput] = useState('10');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const applySnapshot = useSimulationStore((s) => s.applySnapshot);
 
+  const rows = Number(rowsInput);
+  const columns = Number(columnsInput);
+  const rowsValid = Number.isInteger(rows) && rows >= 1 && rows <= MAX_DIMENSION;
+  const columnsValid = Number.isInteger(columns) && columns >= 1 && columns <= MAX_DIMENSION;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!rowsValid || !columnsValid) {
+      setError(`Rows and columns must be whole numbers between 1 and ${MAX_DIMENSION}`);
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
@@ -40,8 +49,8 @@ export function VenueSetupForm() {
             type="number"
             min={1}
             max={MAX_DIMENSION}
-            value={rows}
-            onChange={(e) => setRows(Number(e.target.value))}
+            value={rowsInput}
+            onChange={(e) => setRowsInput(e.target.value)}
           />
         </label>
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -50,12 +59,12 @@ export function VenueSetupForm() {
             type="number"
             min={1}
             max={MAX_DIMENSION}
-            value={columns}
-            onChange={(e) => setColumns(Number(e.target.value))}
+            value={columnsInput}
+            onChange={(e) => setColumnsInput(e.target.value)}
           />
         </label>
         <p className="muted" style={{ fontSize: 13 }}>
-          {rows * columns} total seats (max {MAX_DIMENSION}×{MAX_DIMENSION})
+          {rowsValid && columnsValid ? rows * columns : '—'} total seats (max {MAX_DIMENSION}×{MAX_DIMENSION})
         </p>
         {error && <p style={{ color: 'var(--status-critical)' }}>{error}</p>}
         <button type="submit" disabled={submitting}>

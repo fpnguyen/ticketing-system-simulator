@@ -9,13 +9,22 @@ interface SimulationControlPanelProps {
 }
 
 export function SimulationControlPanel({ venueId, totalSeats, onError }: SimulationControlPanelProps) {
-  const [requestCount, setRequestCount] = useState(Math.round(totalSeats * 2));
-  const [concurrency, setConcurrency] = useState(5);
+  const [requestCountInput, setRequestCountInput] = useState(String(Math.round(totalSeats * 2)));
+  const [concurrencyInput, setConcurrencyInput] = useState('5');
   const [arrivalPattern, setArrivalPattern] = useState<ArrivalPattern>('burst');
   const [hotSeatRatio, setHotSeatRatio] = useState(0.15);
   const [busy, setBusy] = useState(false);
 
+  const requestCount = Number(requestCountInput);
+  const concurrency = Number(concurrencyInput);
+  const requestCountValid = Number.isInteger(requestCount) && requestCount >= 1 && requestCount <= 5000;
+  const concurrencyValid = Number.isInteger(concurrency) && concurrency >= 1 && concurrency <= 20;
+
   async function handleSimulate() {
+    if (!requestCountValid || !concurrencyValid) {
+      onError('Requests must be 1-5000 and concurrency must be 1-20');
+      return;
+    }
     setBusy(true);
     try {
       await startSimulation(venueId, { requestCount, concurrency, arrivalPattern, hotSeatRatio });
@@ -50,8 +59,8 @@ export function SimulationControlPanel({ venueId, totalSeats, onError }: Simulat
             type="number"
             min={1}
             max={5000}
-            value={requestCount}
-            onChange={(e) => setRequestCount(Number(e.target.value))}
+            value={requestCountInput}
+            onChange={(e) => setRequestCountInput(e.target.value)}
           />
         </label>
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -62,8 +71,8 @@ export function SimulationControlPanel({ venueId, totalSeats, onError }: Simulat
             type="number"
             min={1}
             max={20}
-            value={concurrency}
-            onChange={(e) => setConcurrency(Number(e.target.value))}
+            value={concurrencyInput}
+            onChange={(e) => setConcurrencyInput(e.target.value)}
           />
         </label>
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -91,7 +100,7 @@ export function SimulationControlPanel({ venueId, totalSeats, onError }: Simulat
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
         <button type="button" onClick={handleSimulate} disabled={busy}>
-          Generate {requestCount} requests
+          Generate {requestCountValid ? requestCount : ''} requests
         </button>
         <button type="button" onClick={handleReset} disabled={busy}>
           Reset venue

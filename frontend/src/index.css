@@ -87,6 +87,54 @@ button {
   font: inherit;
 }
 
+input[type='number'],
+input[type='text'],
+select {
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+input[type='number']:focus,
+input[type='text']:focus,
+select:focus {
+  outline: 2px solid var(--series-blue);
+  outline-offset: 1px;
+}
+
+input[type='range'] {
+  accent-color: var(--series-blue);
+}
+
+button {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 120ms ease, transform 80ms ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--gridline);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .card {
   background: var(--surface-1);
   border: 1px solid var(--border);
