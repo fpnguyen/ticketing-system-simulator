@@ -1,0 +1,57 @@
+@startuml ticketing-sequence
+skinparam backgroundColor transparent
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 180
+
+actor "User" as User
+participant "React Frontend" as FE
+participant "Express API" as API
+participant "Queue +\nWorker Pool" as Workers
+participant "SeatLock\n(per-seat mutex)" as Lock
+database "Firestore\n(storage only)" as DB
+participant "Socket.IO" as WS
+
+== Venue setup ==
+User -> FE: enter rows x columns, click "Create venue"
+FE -> API: POST /api/venues {rows, columns}
+API -> DB: batched write: venue doc + seat docs
+API --> FE: 201 {venue, seats[]}
+FE -> WS: emit "join-venue" {venueId}
+WS --> FE: "venue:snapshot"
+FE -> User: render seat grid (all available)
+
+== Simulate purchase requests (two customers race for the same seat) ==
+User -> FE: set count/concurrency, click "Generate N requests"
+FE -> API: POST /api/venues/:id/simulate
+API -> API: generate N requests\n(random customer + weighted hot-seat target)
+API -> Workers: enqueue Req A -> seat r1-c3\nenqueue Req B -> seat r1-c3
+API -> WS: "request:update" (queued) x N
+WS -> FE: live queue depth update
+
+Workers -> Lock: runExclusive(r1-c3, Req A)
+activate Lock
+Lock -> Lock: seat status == available -> yes
+Lock -> WS: "seat:update" (held)
+Lock -> Lock: simulated transaction delay
+Lock -> DB: write request + seat docs (fire-and-forget)
+Lock -> WS: "seat:update" (sold)\n"request:update" (committed)
+deactivate Lock
+
+Workers -> Lock: runExclusive(r1-c3, Req B)
+activate Lock
+note right of Lock: blocked until Req A's\ncritical section finishes
+Lock -> Lock: seat status == sold -> reject
+Lock -> WS: "request:update"\n(failed: seat_unavailable)
+deactivate Lock
+
+WS -> FE: seat turns green, log shows\nCOMMITTED / FAILED
+FE -> User: live seat map + throughput chart update
+
+== Manual cancel / reallocate ==
+User -> FE: click "Cancel" on a sold seat
+FE -> API: POST /seats/:seatId/cancel
+API -> Lock: runExclusive(seatId): free the seat
+Lock -> DB: update seat doc, mark request cancelled
+Lock -> WS: "seat:update" (available)\n"request:update" (cancelled)
+WS -> FE: seat map updates live
+@enduml
