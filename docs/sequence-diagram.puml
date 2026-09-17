@@ -1,5 +1,5 @@
 @startuml ticketing-sequence
-skinparam backgroundColor transparent
+skinparam backgroundColor white
 skinparam sequenceMessageAlign center
 skinparam maxMessageSize 180
 
